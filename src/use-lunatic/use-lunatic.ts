@@ -28,6 +28,7 @@ import { getComponentsFromState } from './commons/get-components-from-state';
 import { fillComponents } from './commons/fill-components/fill-components';
 import { reducer } from './reducer/reducer';
 import { mergeDefault } from '../utils/object';
+import { useFillers } from './hooks/useFillers';
 
 const empty = {}; // Keep the same empty object (to avoid problem with useEffect dependencies)
 const DEFAULT_DATA = empty as LunaticData;
@@ -76,6 +77,7 @@ function useLunatic(
 		onChange,
 		trackChanges,
 		preferences,
+		mocks,
 	} = options;
 	const [state, dispatch] = useReducer(
 		reducer,
@@ -117,19 +119,6 @@ function useLunatic(
 		[dispatch]
 	);
 
-	const goNextPage: LunaticState['goNextPage'] = useCallback(
-		function (payload = {}) {
-			dispatch(goNextPageAction(payload));
-		},
-		[dispatch]
-	);
-
-	const goToPage: LunaticState['goToPage'] = useCallback(
-		function (payload) {
-			dispatch(goToPageAction(payload));
-		},
-		[dispatch]
-	);
 	const handleChanges = useCallback<LunaticChangesHandler>(
 		(responses) => {
 			dispatch(handleChangesAction(responses));
@@ -159,6 +148,28 @@ function useLunatic(
 	const pageTag = getPageTag(state.pager);
 	const { isFirstPage, isLastPage } = isFirstLastPage(state.pager);
 
+	const { triggerFillers, isFilling } = useFillers({
+		variables: state.variables,
+		fillers: source.fillers ?? [],
+		handleChanges,
+		fetchMock: mocks?.filler ?? null,
+	});
+
+	const goNextPage: LunaticState['goNextPage'] = useCallback(
+		function (payload = {}) {
+			dispatch(goNextPageAction(payload));
+			triggerFillers();
+		},
+		[dispatch]
+	);
+
+	const goToPage: LunaticState['goToPage'] = useCallback(
+		function (payload) {
+			dispatch(goToPageAction(payload));
+		},
+		[dispatch]
+	);
+
 	const components = fillComponents(getComponentsFromState(state), {
 		handleChanges,
 		preferences,
@@ -174,6 +185,13 @@ function useLunatic(
 		only,
 		except,
 	} = {}) => {
+		if (isFilling) {
+			return [
+				{
+					componentType: 'FillerLoader',
+				},
+			];
+		}
 		if (only && except) {
 			throw new Error(
 				'"only" and "except" cannot be used together in getComponents()'

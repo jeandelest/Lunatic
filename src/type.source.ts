@@ -317,6 +317,7 @@ export interface LunaticSource {
 			  };
 	};
 	maxPage?: string;
+	fillers?: FillerDefinition[];
 }
 export interface VTLExpression {
 	/**
@@ -439,4 +440,12 @@ export interface SuggesterDefinition {
 		| {
 				type: 'soft';
 		  };
+}
+export interface FillerDefinition {
+	endpoint: {
+		url: string;
+	};
+	responses: {
+		name: string;
+	}[];
 }
