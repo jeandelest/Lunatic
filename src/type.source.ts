@@ -33,7 +33,8 @@ export type ComponentDefinition =
 	| ComponentSuggesterDefinition
 	| ComponentPairWiseLinksDefinition
 	| ComponentSummaryDefinition
-	| ComponentText;
+	| ComponentText
+	| ComponentAccordion;
 export type ComponentInputDefinition = ComponentInputDefinition1 & {
 	componentType: 'Input' | 'Textarea';
 	maxLength?: number;
@@ -51,11 +52,11 @@ export type ComponentRoundaboutDefinition = ComponentRoundaboutDefinition1 & {
 	componentType: 'Roundabout';
 	iterations: VTLScalarExpression;
 	locked: boolean;
-	expressions: {
-		unnecessary: VTLScalarExpression;
-		complete: VTLScalarExpression;
-		partial: VTLScalarExpression;
+	progressVariable: string;
+	item: {
 		label: VTLScalarExpression;
+		description?: VTLScalarExpression;
+		disabled?: VTLScalarExpression;
 	};
 	components: ComponentDefinitionWithPage[];
 };
@@ -393,6 +394,13 @@ export interface ResponseDefinition {
 export interface ComponentText {
 	componentType: 'Text';
 	label: VTLExpression;
+}
+export interface ComponentAccordion {
+	componentType: 'Accordion';
+	items: {
+		label: VTLExpression;
+		body: VTLExpression;
+	}[];
 }
 export interface SuggesterDefinition {
 	/**
